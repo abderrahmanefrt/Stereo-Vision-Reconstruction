@@ -1,9 +1,5 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     PROJET STÉRÉOVISION — PIPELINE COMPLET                   ║
-║     Master Informatique Visuelle — USTHB 2025/2026           ║
-║     Prof. Slimane LARABI                                      ║
-╚══════════════════════════════════════════════════════════════╝
+
 
 USAGE :
   python main_stereo.py --mode demo        # Démo avec données synthétiques
