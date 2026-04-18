@@ -2,9 +2,9 @@
 
 
 USAGE :
-  python main_stereo.py --mode demo        # Démo avec données synthétiques
-  python main_stereo.py --mode real        # Avec vos vraies images
-  python main_stereo.py --baseline 120     # Spécifier la baseline en mm
+  python projet.py --mode demo        # Démo avec données synthétiques
+  python projet.py --mode real        # Avec vos vraies images
+  python projet.py --baseline 120     # Spécifier la baseline en mm
 """
 
 import cv2
