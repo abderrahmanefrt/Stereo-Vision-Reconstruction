@@ -1,10 +1,14 @@
 """
-
+╔══════════════════════════════════════════════════════════════╗
+║     PROJET STÉRÉOVISION — PIPELINE COMPLET                   ║
+║     Master Informatique Visuelle — USTHB 2025/2026           ║
+║     Prof. Slimane LARABI                                      ║
+╚══════════════════════════════════════════════════════════════╝
 
 USAGE :
-  python projet.py --mode demo        # Démo avec données synthétiques
-  python projet.py --mode real        # Avec vos vraies images
-  python projet.py --baseline 120     # Spécifier la baseline en mm
+  python main_stereo.py --mode demo        # Démo avec données synthétiques
+  python main_stereo.py --mode real        # Avec vos vraies images
+  python main_stereo.py --baseline 120     # Spécifier la baseline en mm
 """
 
 import cv2
