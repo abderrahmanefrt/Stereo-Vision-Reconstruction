@@ -1,12 +1,3 @@
-"""
-ÉTAPE 2 : Acquisition des deux images stéréo
-============================================
-But : Capturer image gauche (I1) et image droite (I2)
-      avec un déplacement horizontal connu = baseline b
-
-IMPORTANT : Le mouvement doit être une TRANSLATION PURE
-            (pas de rotation, pas de changement de hauteur)
-"""
 
 import cv2
 import numpy as np

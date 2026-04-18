@@ -1,15 +1,3 @@
-"""
-ÉTAPE 3 : Détection SIFT et Mise en Correspondance
-===================================================
-But : Trouver des paires de points (p1, p2) qui correspondent
-      au même point 3D vu depuis deux positions différentes.
-
-Pipeline :
-  Image gauche → SIFT keypoints + descripteurs (128D)
-  Image droite → SIFT keypoints + descripteurs (128D)
-  → Matching avec ratio test de Lowe (filtre les faux appariements)
-  → Contrainte épipolaire (filtre supplémentaire avec matrice fondamentale)
-"""
 
 import cv2
 import numpy as np
