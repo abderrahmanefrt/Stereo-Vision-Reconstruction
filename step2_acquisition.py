@@ -8,7 +8,7 @@ import numpy as np
 # b = distance de translation horizontale entre les deux prises de vue
 # Mesurez-la physiquement avec une règle !
 # Exemple : b = 10 cm = 100 mm
-BASELINE = 100  # mm — à adapter à votre mesure réelle
+BASELINE = 900  # mm — à adapter à votre mesure réelle
 
 def capture_stereo_pair():
     """
