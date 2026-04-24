@@ -1,6 +1,4 @@
 """
-
-
 USAGE :
   python main_stereo.py --mode demo        # Démo avec données synthétiques
   python main_stereo.py --mode real        # Avec vos vraies images
@@ -13,9 +11,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import argparse, os, sys
 
-# ═══════════════════════════════════════════════════════════════
 # CONFIGURATION
-# ═══════════════════════════════════════════════════════════════
 parser = argparse.ArgumentParser(description='Pipeline Stéréovision')
 parser.add_argument('--mode',     default='demo', choices=['demo', 'real'])
 parser.add_argument('--baseline', type=float, default=100.0,
@@ -30,7 +26,6 @@ print(f"  PIPELINE STÉRÉOVISION — baseline = {BASELINE} mm")
 print(f"{'='*60}\n")
 
 
-# ═══════════════════════════════════════════════════════════════
 # ÉTAPE 0 : MODE DÉMO — Génération de données synthétiques
 # ═══════════════════════════════════════════════════════════════
 def generate_synthetic_scene():

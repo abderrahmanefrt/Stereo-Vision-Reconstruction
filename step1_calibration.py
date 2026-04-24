@@ -35,7 +35,7 @@ imgpoints = []  # points 2D dans l'image
 # ─────────────────────────────────────────────
 # CHARGEMENT DES IMAGES DE CALIBRATION
 # ─────────────────────────────────────────────
-images = glob.glob('calibration_images/*.jpg')
+images = glob.glob('calibration_images/*.jpg') + glob.glob('calibration_images/*.png') + glob.glob('calibration_images/*.jpeg')
 # Si vous n'avez pas d'images, utilisez la webcam :
 # images = capture_calibration_images()  # voir fonction ci-dessous
 
