@@ -1,10 +1,6 @@
 """
-╔══════════════════════════════════════════════════════════════════╗
-║   PIPELINE STÉRÉOVISION — VERSION FINALE CORRIGÉE               ║
-║   Images : image_left_undist4.jpg / image_right_undist4.jpg      ║
-║   Baseline : 90 mm                                               ║
-║   CORRECTION : K portrait 3024×4032 → paysage 2880×2160         ║
-╚══════════════════════════════════════════════════════════════════╝
+Images : image_left_undist4.jpg / image_right_undist4.jpg
+Baseline : 90 mm
 """
 
 import cv2
