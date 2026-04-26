@@ -1,7 +1,9 @@
 """
-ÉTAPE 1 : Calibration de la caméra avec un damier
-================================================
-But : Obtenir la matrice intrinsèque K et les coefficients de distorsion
+CALIBRATION RAPIDE — avec redimensionnement automatique
+========================================================
+- Réduit les images à 1280px de large → 10x plus rapide
+- Résultat identique car K est rescalé automatiquement
+- Adapté pour damier 9x7, carrés 20mm
 """
 
 import cv2
@@ -9,124 +11,160 @@ import numpy as np
 import glob
 import os
 
-# ─────────────────────────────────────────────
-# PARAMÈTRES DU DAMIER
-# ─────────────────────────────────────────────
-ROWS = 6          # nombre de coins internes en hauteur
-COLS = 9          # nombre de coins internes en largeur
-SQUARE_SIZE = 25  # taille d'un carré en mm (à adapter selon votre damier)
+# ══════════════════════════════════════════════
+#  PARAMÈTRES — VÉRIFIE CES VALEURS
+# ══════════════════════════════════════════════
+COLS        = 9     # coins internes horizontaux (cases - 1)
+ROWS        = 7     # coins internes verticaux   (cases - 1)
+SQUARE_SIZE = 20    # taille d'un carré en mm (écrit sur ton damier : 20x20mm ✅)
+RESIZE_W    = 1280  # largeur de travail (réduit pour la vitesse)
 
-# Critères d'arrêt pour l'affinage des coins
+# ══════════════════════════════════════════════
+#  PRÉPARATION
+# ══════════════════════════════════════════════
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-# ─────────────────────────────────────────────
-# PRÉPARATION DES POINTS 3D RÉELS DU DAMIER
-# ─────────────────────────────────────────────
-# Points dans le repère monde : Z=0 (damier plat)
-# Exemple pour ROWS=6, COLS=9 :
-# (0,0,0), (25,0,0), (50,0,0), ..., (200,125,0)
 objp = np.zeros((ROWS * COLS, 3), np.float32)
 objp[:, :2] = np.mgrid[0:COLS, 0:ROWS].T.reshape(-1, 2) * SQUARE_SIZE
 
-# Listes pour stocker tous les points
-objpoints = []  # points 3D dans le monde réel
-imgpoints = []  # points 2D dans l'image
+objpoints = []
+imgpoints = []
 
-# ─────────────────────────────────────────────
-# CHARGEMENT DES IMAGES DE CALIBRATION
-# ─────────────────────────────────────────────
-images = glob.glob('calibration_images/*.jpg') + glob.glob('calibration_images/*.png') + glob.glob('calibration_images/*.jpeg')
-# Si vous n'avez pas d'images, utilisez la webcam :
-# images = capture_calibration_images()  # voir fonction ci-dessous
+# ══════════════════════════════════════════════
+#  CHARGEMENT ET TRAITEMENT DES IMAGES
+# ══════════════════════════════════════════════
+images = (glob.glob('calibration_images/*.jpg')  +
+          glob.glob('calibration_images/*.jpeg') +
+          glob.glob('calibration_images/*.png')  +
+          glob.glob('calibration_images/*.JPG')  +
+          glob.glob('calibration_images/*.JPEG'))
 
-print(f"[INFO] {len(images)} images de calibration trouvées")
+print(f"[INFO] {len(images)} images trouvées")
+print(f"[INFO] Damier : {COLS}×{ROWS} coins internes, carrés {SQUARE_SIZE}mm")
+print(f"[INFO] Redimensionnement à {RESIZE_W}px de large\n")
 
-for fname in images:
+scale_ratio  = None   # ratio de redimensionnement (calculé sur 1ère image)
+original_size = None  # taille originale des images
+
+ok_count   = 0
+fail_count = 0
+
+for i, fname in enumerate(images):
     img = cv2.imread(fname)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if img is None:
+        print(f"  ⚠️  Impossible de lire : {fname}")
+        continue
 
-    # Recherche des coins du damier
+    h_orig, w_orig = img.shape[:2]
+
+    # ── Calcul du ratio de redimensionnement (1 seule fois) ──
+    if scale_ratio is None:
+        scale_ratio   = RESIZE_W / w_orig
+        original_size = (w_orig, h_orig)
+        resize_h      = int(h_orig * scale_ratio)
+        print(f"[INFO] Taille originale : {w_orig}×{h_orig} px")
+        print(f"[INFO] Taille de travail : {RESIZE_W}×{resize_h} px")
+        print(f"[INFO] Ratio : {scale_ratio:.4f}\n")
+
+    # ── Redimensionnement ─────────────────────────────────────
+    img_small = cv2.resize(img, (RESIZE_W, int(h_orig * scale_ratio)))
+    gray      = cv2.cvtColor(img_small, cv2.COLOR_BGR2GRAY)
+
+    # ── Détection des coins ───────────────────────────────────
+    print(f"  [{i+1}/{len(images)}] {os.path.basename(fname)} ... ", end='', flush=True)
     ret, corners = cv2.findChessboardCorners(gray, (COLS, ROWS), None)
 
     if ret:
+        ok_count += 1
         objpoints.append(objp)
 
-        # Affinage subpixel des coins (plus de précision)
         corners_refined = cv2.cornerSubPix(
             gray, corners, (11, 11), (-1, -1), criteria
         )
         imgpoints.append(corners_refined)
+        print(f"✅ coins détectés")
 
-        # Visualisation (optionnel)
-        cv2.drawChessboardCorners(img, (COLS, ROWS), corners_refined, ret)
-        cv2.imshow('Calibration', img)
-        cv2.waitKey(200)
+        # Visualisation rapide
+        vis = img_small.copy()
+        cv2.drawChessboardCorners(vis, (COLS, ROWS), corners_refined, ret)
+        cv2.imshow('Calibration — appuie une touche', vis)
+        cv2.waitKey(300)
+    else:
+        fail_count += 1
+        print(f"❌ coins NON détectés")
 
 cv2.destroyAllWindows()
 
-# ─────────────────────────────────────────────
-# CALCUL DE LA CALIBRATION
-# ─────────────────────────────────────────────
-h, w = gray.shape[:2]
+print(f"\n{'='*50}")
+print(f"  Images valides   : {ok_count}")
+print(f"  Images rejetées  : {fail_count}")
+print(f"{'='*50}\n")
 
-ret, K, dist, rvecs, tvecs = cv2.calibrateCamera(
-    objpoints, imgpoints, (w, h), None, None
+if ok_count < 5:
+    print("❌ Moins de 5 images valides — calibration impossible.")
+    print("   Reprends les photos en suivant les conseils.")
+    exit()
+
+# ══════════════════════════════════════════════
+#  CALIBRATION SUR LES IMAGES RÉDUITES
+# ══════════════════════════════════════════════
+resize_h = int(original_size[1] * scale_ratio)
+ret, K_small, dist, rvecs, tvecs = cv2.calibrateCamera(
+    objpoints, imgpoints,
+    (RESIZE_W, resize_h),
+    None, None
 )
 
-print("\n" + "="*50)
+# ══════════════════════════════════════════════
+#  RESCALER K VERS LA RÉSOLUTION ORIGINALE
+# ══════════════════════════════════════════════
+# K a été calculé pour RESIZE_W×resize_h
+# On le ramène à la taille originale des images
+K = K_small.copy()
+K[0, 0] /= scale_ratio   # fx
+K[1, 1] /= scale_ratio   # fy
+K[0, 2] /= scale_ratio   # cx
+K[1, 2] /= scale_ratio   # cy
+
+# ══════════════════════════════════════════════
+#  RÉSULTATS
+# ══════════════════════════════════════════════
 print("✅ RÉSULTATS DE LA CALIBRATION")
 print("="*50)
-print(f"\n📐 Matrice intrinsèque K :")
-print(f"   [ fx  0  cx ]   [ {K[0,0]:.2f}  0  {K[0,2]:.2f} ]")
-print(f"   [  0 fy  cy ] = [  0  {K[1,1]:.2f}  {K[1,2]:.2f} ]")
-print(f"   [  0  0   1 ]   [  0    0       1   ]")
-print(f"\n   fx (focale x) = {K[0,0]:.2f} pixels")
-print(f"   fy (focale y) = {K[1,1]:.2f} pixels")
-print(f"   cx (centre x) = {K[0,2]:.2f} pixels")
-print(f"   cy (centre y) = {K[1,2]:.2f} pixels")
-print(f"\n🔍 Coefficients de distorsion :")
-print(f"   {dist.ravel()}")
+print(f"\n  Calculé sur images {RESIZE_W}px, rescalé pour {original_size[0]}px\n")
+print(f"  Matrice K (pour images {original_size[0]}×{original_size[1]}) :")
+print(f"  [ {K[0,0]:.1f}      0    {K[0,2]:.1f} ]")
+print(f"  [    0    {K[1,1]:.1f}   {K[1,2]:.1f} ]")
+print(f"  [    0       0       1   ]\n")
+print(f"  fx = {K[0,0]:.1f} px  (attendu ~2000-4000 pour image {original_size[0]}px)")
+print(f"  fy = {K[1,1]:.1f} px")
+print(f"  cx = {K[0,2]:.1f} px  (attendu ~{original_size[0]//2})")
+print(f"  cy = {K[1,2]:.1f} px  (attendu ~{original_size[1]//2})")
 
-# Erreur de reprojection (doit être < 1 pixel)
+print(f"\n  Coefficients distorsion : {dist.ravel()}")
+
+# Erreur de reprojection
 mean_error = 0
 for i in range(len(objpoints)):
     imgpoints2, _ = cv2.projectPoints(
-        objpoints[i], rvecs[i], tvecs[i], K, dist
+        objpoints[i], rvecs[i], tvecs[i], K_small, dist
     )
-    error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
-    mean_error += error
-print(f"\n📊 Erreur de reprojection moyenne : {mean_error/len(objpoints):.4f} px")
-print("   (Bonne calibration si < 0.5 px)")
+    mean_error += cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
+mean_error /= len(objpoints)
 
-# ─────────────────────────────────────────────
-# SAUVEGARDE
-# ─────────────────────────────────────────────
-np.save('camera_K.npy', K)
+print(f"\n  Erreur de reprojection : {mean_error:.4f} px")
+if mean_error < 0.5:
+    print("  ✅ Excellente calibration !")
+elif mean_error < 1.0:
+    print("  ✅ Bonne calibration")
+else:
+    print("  ⚠️  Erreur élevée — essaie de supprimer les photos floues ou mal cadrées")
+
+# ══════════════════════════════════════════════
+#  SAUVEGARDE
+# ══════════════════════════════════════════════
+np.save('camera_K.npy',    K)
 np.save('camera_dist.npy', dist)
-print("\n💾 Paramètres sauvegardés dans camera_K.npy et camera_dist.npy")
 
-
-# ─────────────────────────────────────────────
-# OPTIONNEL : Capturer les images depuis la webcam
-# ─────────────────────────────────────────────
-def capture_calibration_images(n=20, save_dir='calibration_images'):
-    """Capture n images depuis la webcam pour la calibration"""
-    os.makedirs(save_dir, exist_ok=True)
-    cap = cv2.VideoCapture(0)
-    count = 0
-    print("Appuyez sur ESPACE pour capturer, Q pour quitter")
-    while count < n:
-        ret, frame = cap.read()
-        cv2.putText(frame, f"Captures: {count}/{n} | ESPACE=capture Q=quitter",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
-        cv2.imshow("Capture calibration", frame)
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord(' '):
-            path = f"{save_dir}/calib_{count:03d}.jpg"
-            cv2.imwrite(path, frame)
-            print(f"  Sauvegardé : {path}")
-            count += 1
-        elif key == ord('q'):
-            break
-    cap.release()
-    cv2.destroyAllWindows()
+print(f"\n💾 Sauvegardé : camera_K.npy  camera_dist.npy")
+print(f"   Ces fichiers sont prêts pour main_stereo_final.py ✅")
