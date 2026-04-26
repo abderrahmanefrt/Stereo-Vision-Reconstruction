@@ -9,12 +9,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import os, sys
 
-# ══════════════════════════════════════════════════════════════════
 #  CONFIGURATION
-# ══════════════════════════════════════════════════════════════════
 LEFT_IMG  = 'image_left_undist4.jpg'
 RIGHT_IMG = 'image_right_undist4.jpg'
-BASELINE  = 90.0   # mm
+BASELINE  = 90.0 # mm
 
 # Résolution des photos de calibration (téléphone en PORTRAIT)
 CALIB_W = 3024   # largeur  portrait
