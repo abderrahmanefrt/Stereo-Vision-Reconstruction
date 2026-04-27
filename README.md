@@ -5,7 +5,7 @@
 This project implements a complete pipeline for **3D reconstruction from stereo images** (left/right).
 It estimates **depth (Z)** and generates a **3D point cloud in millimeters**.
 
----
+
 
 ## 🧠 Principle
 
@@ -26,7 +26,7 @@ Where:
 * `B` = baseline (mm)
 * `d` = disparity
 
----
+
 
 ## ⚙️ Project Pipeline
 
@@ -79,7 +79,7 @@ cv2.recoverPose(...)
   * Rotation `R`
   * Translation `t`
 
----
+
 
 ### 6. 🔄 Epipolar Rectification
 
@@ -95,7 +95,7 @@ cv2.stereoRectifyUncalibrated(...)
 K_rect = H @ K
 ```
 
----
+
 
 ### 7. 📉 Disparity Computation
 
@@ -105,7 +105,7 @@ disp = pts_l[:,0] - pts_r[:,0]
 
 * Horizontal difference between matched points
 
----
+
 
 ### 8. 📦 3D Triangulation
 
@@ -132,7 +132,6 @@ pts3d *= scale
 
 * Converts reconstruction to **real-world units (mm)**
 
----
 
 ### 10. 🧹 Point Cloud Filtering
 
@@ -142,7 +141,7 @@ pts3d *= scale
   * NaN / infinite values
 * Apply outlier filtering (3σ rule)
 
----
+
 
 ### 11. 📊 Visualization
 
@@ -162,7 +161,7 @@ pts3d *= scale
 * `camera_K.npy`
 * `camera_dist.npy` (optional)
 
----
+
 
 ## ▶️ Run the Project
 
@@ -193,7 +192,7 @@ python main.py
   * number of matches
 * Translation vector `t` is normalized → scaling with baseline is required
 
----
+
 
 ## 🚀 Possible Improvements
 
@@ -202,7 +201,7 @@ python main.py
 * Add color/texture to point cloud
 * Apply bundle adjustment for optimization
 
----
+
 
 ## 👨‍💻 Author
 
