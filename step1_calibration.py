@@ -1,10 +1,3 @@
-"""
-CALIBRATION RAPIDE — avec redimensionnement automatique
-========================================================
-- Réduit les images à 1280px de large → 10x plus rapide
-- Résultat identique car K est rescalé automatiquement
-- Adapté pour damier 9x7, carrés 20mm
-"""
 
 import cv2
 import numpy as np
@@ -57,7 +50,6 @@ for i, fname in enumerate(images):
 
     h_orig, w_orig = img.shape[:2]
 
-    # ── Calcul du ratio de redimensionnement (1 seule fois) ──
     if scale_ratio is None:
         scale_ratio   = RESIZE_W / w_orig
         original_size = (w_orig, h_orig)
@@ -136,10 +128,10 @@ print(f"  Matrice K (pour images {original_size[0]}×{original_size[1]}) :")
 print(f"  [ {K[0,0]:.1f}      0    {K[0,2]:.1f} ]")
 print(f"  [    0    {K[1,1]:.1f}   {K[1,2]:.1f} ]")
 print(f"  [    0       0       1   ]\n")
-print(f"  fx = {K[0,0]:.1f} px  (attendu ~2000-4000 pour image {original_size[0]}px)")
+print(f"  fx = {K[0,0]:.1f} px  ")
 print(f"  fy = {K[1,1]:.1f} px")
-print(f"  cx = {K[0,2]:.1f} px  (attendu ~{original_size[0]//2})")
-print(f"  cy = {K[1,2]:.1f} px  (attendu ~{original_size[1]//2})")
+print(f"  cx = {K[0,2]:.1f} px  ")
+print(f"  cy = {K[1,2]:.1f} px ")
 
 print(f"\n  Coefficients distorsion : {dist.ravel()}")
 
@@ -166,5 +158,4 @@ else:
 np.save('camera_K.npy',    K)
 np.save('camera_dist.npy', dist)
 
-print(f"\n💾 Sauvegardé : camera_K.npy  camera_dist.npy")
-print(f"   Ces fichiers sont prêts pour main_stereo_final.py ✅")
+print(f"\n Sauvegardé : camera_K.npy  camera_dist.npy")
